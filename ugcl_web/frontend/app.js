@@ -81,6 +81,12 @@ async function postJson(url, params) {
 
 async function runRf() {
   const y1 = document.getElementById("y1").value;
+
+  if (!y1) {
+    alert("Please select a year before running RF classification.");
+    return;
+  }
+
   const r = await postJson("/api/run/rf", { year: y1 });
   alert(`RF job status: ${r.status}\n${r.message}`);
 }
@@ -99,13 +105,16 @@ async function main() {
   const y1El = document.getElementById("y1");
   const y2El = document.getElementById("y2");
 
+  if (!years || years.length === 0) {
+    alert("No available years found. Please make sure rf_YYYY.tif files exist in outputs/maps.");
+    return;
+  }
+
   setDropdownOptions(y1El, years);
   setDropdownOptions(y2El, years);
 
-  if (years.length >= 2) {
-    y1El.value = years[0];
-    y2El.value = years[years.length - 1];
-  }
+  y1El.value = String(years[0]);
+  y2El.value = String(years[years.length - 1]);
 
   document.getElementById("btnLoad").onclick = loadLayers;
   document.getElementById("btnRF").onclick = runRf;
