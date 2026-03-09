@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>UGCL Web Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="/static/styles.css"/>
+</head>
+<body>
+  <div class="topbar">
+    <div class="title">UGCL Dashboard – Colombo (Sentinel-2 + RF)</div>
+
+    <div class="controls">
+      <label>Year 1</label>
+      <select id="y1"></select>
+
+      <label>Year 2</label>
+      <select id="y2"></select>
+
+      <button id="btnLoad">Load Layers</button>
+      <button id="btnRF">Run RF (Year 1)</button>
+      <button id="btnChange">Run Change</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div id="map"></div>
+
+    <div class="panel">
+      <h3>Statistics</h3>
+      <div id="stats">Select years and load layers.</div>
+
+      <h3>Legend</h3>
+      <div class="legend">
+        <div><span class="box veg"></span> Vegetation (1)</div>
+        <div><span class="box built"></span> Built-up (2)</div>
+        <div><span class="box other"></span> Other (3)</div>
+        <hr/>
+        <div><span class="box loss"></span> Loss</div>
+        <div><span class="box gain"></span> Gain</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>

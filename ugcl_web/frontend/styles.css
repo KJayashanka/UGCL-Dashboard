@@ -1,0 +1,15 @@
+body { margin:0; font-family: Arial, sans-serif; }
+.topbar { padding: 10px 12px; background:#111; color:#fff; display:flex; gap:12px; align-items:center; }
+.title { font-weight:700; }
+.controls { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.controls select, .controls button { padding:6px 8px; border-radius:6px; border:0; }
+.controls button { cursor:pointer; }
+.layout { display:flex; height: calc(100vh - 50px); }
+#map { flex: 1; }
+.panel { width: 320px; padding:12px; background:#f6f6f6; overflow:auto; border-left:1px solid #ddd; }
+.legend .box { display:inline-block; width:16px; height:16px; margin-right:8px; vertical-align:middle; }
+.box.veg { background: rgba(0,160,0,0.8); }
+.box.built { background: rgba(200,0,0,0.8); }
+.box.other { background: rgba(255,200,0,0.8); }
+.box.loss { background: rgba(200,0,0,0.8); }
+.box.gain { background: rgba(0,160,0,0.8); }

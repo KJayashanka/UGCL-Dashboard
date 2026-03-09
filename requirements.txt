@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+rasterio
+numpy
+pandas
+scikit-learn
+geopandas
+rio-tiler
+pillow
