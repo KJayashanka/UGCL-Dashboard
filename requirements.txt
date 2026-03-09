@@ -7,3 +7,5 @@ scikit-learn
 geopandas
 rio-tiler
 pillow
+jinja2
+python-multipart
