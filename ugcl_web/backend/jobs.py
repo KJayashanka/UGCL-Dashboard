@@ -1,64 +1,70 @@
 import subprocess
+import uuid
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict
-import uuid
 
-from .config import BASE_DIR
-
+BASE_DIR = Path(__file__).resolve().parents[2]
+PYTHON_EXE = BASE_DIR / "venv" / "Scripts" / "python.exe"
 
 @dataclass
 class Job:
     id: str
-    status: str  # queued/running/done/failed
+    status: str
     message: str
-
 
 JOBS: Dict[str, Job] = {}
 
-
 def _run_cmd(cmd: list[str]) -> str:
-    p = subprocess.run(cmd, cwd=str(BASE_DIR), capture_output=True, text=True)
-    if p.returncode != 0:
-        raise RuntimeError(p.stderr.strip() or "Command failed")
-    return p.stdout
-
+    process = subprocess.run(
+        cmd,
+        cwd=str(BASE_DIR),
+        capture_output=True,
+        text=True
+    )
+    if process.returncode != 0:
+        raise RuntimeError(process.stderr.strip() or process.stdout.strip() or "Command failed")
+    return process.stdout.strip()
 
 def start_rf_job(year: int) -> Job:
-    jid = str(uuid.uuid4())
-    job = Job(id=jid, status="running", message="Starting RF classification...")
-    JOBS[jid] = job
+    job_id = str(uuid.uuid4())
+    job = Job(id=job_id, status="running", message=f"Running RF classification for {year}...")
+    JOBS[job_id] = job
 
     try:
-        # IMPORTANT: Adjust args to match your script.
-        # If your preprocess_and_rf.py runs for one year based on args, use this:
-        out = _run_cmd([str(BASE_DIR / "venv/Scripts/python.exe"), "src/preprocess_and_rf.py", "--year", str(year)])
-
+        output = _run_cmd([
+            str(PYTHON_EXE),
+            "src/preprocess_and_rf.py",
+            "--year",
+            str(year)
+        ])
         job.status = "done"
-        job.message = out[-500:]  # last part
+        job.message = output[-1000:] if output else f"RF classification completed for {year}"
     except Exception as e:
         job.status = "failed"
         job.message = str(e)
 
     return job
 
-
-def start_change_job(year_from: int, year_to: int) -> Job:
-    jid = str(uuid.uuid4())
-    job = Job(id=jid, status="running", message="Starting change detection...")
-    JOBS[jid] = job
+def start_change_job(y1: int, y2: int) -> Job:
+    job_id = str(uuid.uuid4())
+    job = Job(id=job_id, status="running", message=f"Running change detection for {y1} -> {y2}...")
+    JOBS[job_id] = job
 
     try:
-        out = _run_cmd(
-            [str(BASE_DIR / "venv/Scripts/python.exe"), "src/change_detect.py", str(year_from), str(year_to)])
+        output = _run_cmd([
+            str(PYTHON_EXE),
+            "src/change_detect.py",
+            str(y1),
+            str(y2)
+        ])
         job.status = "done"
-        job.message = out[-500:]
+        job.message = output[-1000:] if output else f"Change detection completed for {y1} -> {y2}"
     except Exception as e:
         job.status = "failed"
         job.message = str(e)
 
     return job
-
 
 def get_job(job_id: str):
     return JOBS.get(job_id)

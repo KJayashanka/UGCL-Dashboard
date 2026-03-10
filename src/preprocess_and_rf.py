@@ -15,7 +15,6 @@ from config import (
     NDVI_VEG, NDVI_WATER, SAMPLES_PER_CLASS, RF_PARAMS
 )
 
-
 # ---------- Helpers ----------
 def find_band_paths(safe_dir: str):
     """
@@ -243,7 +242,6 @@ def train_rf_for_year(stack, lab, meta, year):
 
     return out_map
 
-
 def main(selected_year=None):
     run_years = [selected_year] if selected_year else YEARS
 
@@ -260,13 +258,9 @@ def main(selected_year=None):
         out_map = train_rf_for_year(stack, lab, meta, year)
         print(f"[DONE] RF map saved: {out_map}")
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--year", type=int, help="Run RF pipeline for a single year (e.g., 2018)")
+    parser.add_argument("--year", type=int, help="Run RF pipeline for a single year")
     args = parser.parse_args()
 
     main(selected_year=args.year)
-
-if __name__ == "__main__":
-    main()

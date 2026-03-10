@@ -1,4 +1,5 @@
 # src/change_detect.py
+import argparse
 import os
 from pathlib import Path
 import numpy as np
@@ -69,4 +70,9 @@ def main(y1=2018, y2=2025):
 
 
 if __name__ == "__main__":
-    main(2018, 2025)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("y1", type=int)
+    parser.add_argument("y2", type=int)
+    args = parser.parse_args()
+
+    main(args.y1, args.y2)
