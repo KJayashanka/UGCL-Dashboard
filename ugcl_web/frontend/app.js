@@ -164,6 +164,22 @@ async function runChange() {
   }
 }
 
+function downloadSummaryCsv() {
+  window.open("/api/download/summary", "_blank");
+}
+
+function downloadChangeCsv() {
+  const y1 = document.getElementById("y1").value;
+  const y2 = document.getElementById("y2").value;
+
+  if (!y1 || !y2) {
+    alert("Please select both years first.");
+    return;
+  }
+
+  window.open(`/api/download/change?y1=${y1}&y2=${y2}`, "_blank");
+}
+
 async function main() {
   initMap();
 
@@ -180,6 +196,8 @@ async function main() {
   document.getElementById("btnLoad").addEventListener("click", loadLayers);
   document.getElementById("btnRF").addEventListener("click", runRf);
   document.getElementById("btnChange").addEventListener("click", runChange);
+  document.getElementById("btnDownloadSummary").addEventListener("click", downloadSummaryCsv);
+  document.getElementById("btnDownloadChange").addEventListener("click", downloadChangeCsv);
 
   await loadLayers();
 }

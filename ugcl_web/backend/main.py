@@ -4,6 +4,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse, Response, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+from fastapi.responses import FileResponse
 
 from .config import MAPS_DIR, CHANGE_DIR, COLORMAP, CHANGE_COLORMAP, AVAILABLE_YEARS
 from .raster_tiles import tile_png
@@ -127,3 +128,30 @@ def job_status(job_id: str):
         return JSONResponse({"error": "Job not found"}, status_code=404)
 
     return {"job_id": job.id, "status": job.status, "message": job.message}
+
+@app.get("/api/download/summary")
+def download_summary():
+    csv_path = CHANGE_DIR / "summary_stats.csv"
+
+    if not csv_path.exists():
+        return JSONResponse({"error": "summary_stats.csv not found"}, status_code=404)
+
+    return FileResponse(
+        path=str(csv_path),
+        media_type="text/csv",
+        filename="summary_stats.csv"
+    )
+
+
+@app.get("/api/download/change")
+def download_change_csv(y1: int, y2: int):
+    csv_path = CHANGE_DIR / f"stats_{y1}_{y2}.csv"
+
+    if not csv_path.exists():
+        return JSONResponse({"error": f"stats_{y1}_{y2}.csv not found"}, status_code=404)
+
+    return FileResponse(
+        path=str(csv_path),
+        media_type="text/csv",
+        filename=f"stats_{y1}_{y2}.csv"
+    )

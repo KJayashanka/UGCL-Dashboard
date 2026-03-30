@@ -1,18 +1,40 @@
-# src/change_detect.py
 import argparse
 import os
 from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import rasterio
+from rasterio.warp import reproject, Resampling
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 OUTPUT_DIR = BASE_DIR / "outputs"
 VEG_CLASS = 1
 
+
 def area_hectares(pixel_count, pixel_size_m=10):
-    # area = n * (pixel_size^2) ; convert m2 -> hectares (1 ha = 10,000 m2)
     return (pixel_count * (pixel_size_m ** 2)) / 10000.0
+
+
+def read_aligned_arrays(ref_path, target_path):
+    with rasterio.open(ref_path) as ref:
+        ref_arr = ref.read(1)
+        ref_meta = ref.meta.copy()
+
+        with rasterio.open(target_path) as src:
+            aligned = np.empty((ref.height, ref.width), dtype=src.dtypes[0])
+
+            reproject(
+                source=rasterio.band(src, 1),
+                destination=aligned,
+                src_transform=src.transform,
+                src_crs=src.crs,
+                dst_transform=ref.transform,
+                dst_crs=ref.crs,
+                resampling=Resampling.nearest
+            )
+
+    return ref_arr, aligned, ref_meta
 
 
 def main(y1=2018, y2=2025):
@@ -21,14 +43,20 @@ def main(y1=2018, y2=2025):
 
     print("Looking for:", m1)
     print("Looking for:", m2)
-    print("Exists 2018?", m1.exists())
-    print("Exists 2025?", m2.exists())
+    print(f"Exists {y1}?", m1.exists())
+    print(f"Exists {y2}?", m2.exists())
 
-    with rasterio.open(str(m1)) as a, rasterio.open(str(m2)) as b:
-        A = a.read(1)
-        B = b.read(1)
-        meta = a.meta.copy()
-        pixel_size = a.transform.a  # usually 10
+    if not m1.exists() or not m2.exists():
+        print(f"Missing file for {y1} or {y2}")
+        return
+
+    A, B, meta = read_aligned_arrays(str(m1), str(m2))
+
+    with rasterio.open(str(m1)) as ref:
+        pixel_size = abs(ref.transform.a)
+
+    print("Shape of A:", A.shape)
+    print("Shape of B:", B.shape)
 
     vegA = (A == VEG_CLASS)
     vegB = (B == VEG_CLASS)
@@ -38,18 +66,18 @@ def main(y1=2018, y2=2025):
     stable_veg = vegA & vegB
     stable_non = (~vegA) & (~vegB)
 
-    # encode change map
-    # 0=no-data/other, 1=stable non-veg, 2=stable veg, 3=gain, 4=loss
     change = np.zeros_like(A, dtype=np.uint8)
     change[stable_non] = 1
     change[stable_veg] = 2
     change[gain] = 3
     change[loss] = 4
 
-    os.makedirs(os.path.join(OUTPUT_DIR, "change"), exist_ok=True)
-    out_map = os.path.join(OUTPUT_DIR, "change", f"change_{y1}_{y2}.tif")
+    out_dir = OUTPUT_DIR / "change"
+    out_dir.mkdir(parents=True, exist_ok=True)
 
+    out_map = out_dir / f"change_{y1}_{y2}.tif"
     meta.update(dtype="uint8", count=1)
+
     with rasterio.open(out_map, "w", **meta) as dst:
         dst.write(change, 1)
 
@@ -63,16 +91,21 @@ def main(y1=2018, y2=2025):
     }
 
     df = pd.DataFrame([stats])
-    df.to_csv(os.path.join(OUTPUT_DIR, "change", f"stats_{y1}_{y2}.csv"), index=False)
+    csv_path = out_dir / f"stats_{y1}_{y2}.csv"
+    df.to_csv(csv_path, index=False)
 
     print("Saved:", out_map)
+    print("Saved:", csv_path)
     print(df)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("y1", type=int)
-    parser.add_argument("y2", type=int)
-    args = parser.parse_args()
+    years = list(range(2018, 2026))  # 2018 to 2025
 
-    main(args.y1, args.y2)
+    for i in range(len(years)):
+        for j in range(i + 1, len(years)):
+            y1 = years[i]
+            y2 = years[j]
+
+            print(f"\nProcessing {y1} → {y2}")
+            main(y1, y2)
